@@ -1,18 +1,18 @@
 <?php
 
 $css = file_get_contents(__DIR__ . '/template.css');
-$propPrefixes = [];
-$valuePrefixes = [];
+$propAlternatives = [];
 
 function parseCss($css, $inScope = false) {
 
-    global $propPrefixes;
-    global $valuePrefixes;
+    global $propAlternatives;
 
     $i = 0;
     $selector = '';
     $maxI = strlen($css);
     $spacing = 0;
+    $valueByProp = [];
+    $alternatives = [];
 
     while ($i < $maxI) {
 
@@ -71,11 +71,12 @@ function parseCss($css, $inScope = false) {
             }
             $i++;
 
+            $scope = true;
             if ($selector[0] === '@') {
-                continue;
+                $scope = false;
             }
 
-            $body = parseCss($body, true);
+            $body = parseCss($body, $scope);
 
             continue;
         }
@@ -98,44 +99,16 @@ function parseCss($css, $inScope = false) {
             $propTrim = trim($prop);
             $valueTrim = trim($value);
 
-            if ($propTrim[0] === '-') {
-                $prefix = null;
-                if ($propTrim[2] === '-') {
-                    $prefix = '-o-';
-                } elseif ($propTrim[3] === '-') {
-                    $prefix = '-ms-';
-                } elseif ($propTrim[4] === '-') {
-                    $prefix = '-moz-';
-                } elseif ($propTrim[7] === '-') {
-                    $prefix = '-webkit-';
-                }
-                if ($prefix && substr($propTrim, 0, strlen($prefix)) === $prefix) {
-                    $default = substr($propTrim, strlen($prefix));
-                    if (!isset($propPrefixes[$default])) {
-                        $propPrefixes[$default] = [];
-                    }
-                    $propPrefixes[$default][] = $prefix;
-                }
-            }
-
-            if ($valueTrim[0] === '-') {
-                $prefix = null;
-                if (isset($valueTrim[2]) && $valueTrim[2] === '-') {
-                    $prefix = '-o-';
-                } elseif (isset($valueTrim[3]) && $valueTrim[3] === '-') {
-                    $prefix = '-ms-';
-                } elseif (isset($valueTrim[4]) && $valueTrim[4] === '-') {
-                    $prefix = '-moz-';
-                } elseif (isset($valueTrim[7]) && $valueTrim[7] === '-') {
-                    $prefix = '-webkit-';
-                }
-                if ($prefix && substr($valueTrim, 0, strlen($prefix)) === $prefix) {
-                    $default = substr($valueTrim, strlen($prefix));
-                    if (preg_match('/^[a-z]+$/', $default)) {
-                        if (!isset($valuePrefixes[$default])) {
-                            $valuePrefixes[$default] = [];
+            if (preg_match('/^[a-z-]+$/', $valueTrim)) {
+                if ($propTrim[0] === '-' || $valueTrim[0] === '-') {
+                    $alternatives[$propTrim] = $valueTrim;
+                } else {
+                    if (count($alternatives) > 0) {
+                        if (!isset($propAlternatives[$propTrim])) {
+                            $propAlternatives[$propTrim] = [];
                         }
-                        $valuePrefixes[$default][] = $prefix;
+                        $propAlternatives[$propTrim][$valueTrim] = $alternatives;
+                        $alternatives = [];
                     }
                 }
             }
@@ -149,16 +122,18 @@ function parseCss($css, $inScope = false) {
 
 parseCss($css);
 
-echo "-- PROPS\n";
-foreach ($propPrefixes as $key => $prefixes) {
-    $prefixes = array_unique($prefixes);
-    sort($prefixes);
-    echo '"' . $key . '" => ["' . (implode('","', $prefixes)) . '"]' . "\n";
-}
+// echo json_encode($propAlternatives, JSON_PRETTY_PRINT);
 
-echo "-- VALUES\n";
-foreach ($valuePrefixes as $key => $prefixes) {
-    $prefixes = array_unique($prefixes);
-    sort($prefixes);
-    echo '"' . $key . '" => ["' . (implode('","', $prefixes)) . '"]' . "\n";
+// exit;
+foreach ($propAlternatives as $prop => $values) {
+    echo '"' . $prop . '" => [' . "\n";
+    foreach ($values as $value => $prefixes) {
+        echo '   "' . $value . '" => [';
+        foreach ($prefixes as $key => $value) {
+            echo '"' . $key . '" => "' . $value . '",';
+        }
+        echo '],' . "\n";
+    }
+    echo '],';
+    echo "\n";
 }
