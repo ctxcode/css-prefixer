@@ -12,4 +12,4 @@ $css = $cssFixer->prefixCss($css);
 
 file_put_contents($out, $css);
 
-echo $css;
+//echo $css;
