@@ -99,17 +99,17 @@ function parseCss($css, $inScope = false) {
             $propTrim = trim($prop);
             $valueTrim = trim($value);
 
-            if (preg_match('/^[a-z-]+$/', $valueTrim)) {
-                if ($propTrim[0] === '-' || $valueTrim[0] === '-') {
+            if ($propTrim[0] === '-' || $valueTrim[0] === '-') {
+                if (!preg_match('/^-[0-9]/', $valueTrim)) {
                     $alternatives[$propTrim] = $valueTrim;
-                } else {
-                    if (count($alternatives) > 0) {
-                        if (!isset($propAlternatives[$propTrim])) {
-                            $propAlternatives[$propTrim] = [];
-                        }
-                        $propAlternatives[$propTrim][$valueTrim] = $alternatives;
-                        $alternatives = [];
+                }
+            } else {
+                if (count($alternatives) > 0) {
+                    if (!isset($propAlternatives[$propTrim])) {
+                        $propAlternatives[$propTrim] = [];
                     }
+                    $propAlternatives[$propTrim][$valueTrim] = $alternatives;
+                    $alternatives = [];
                 }
             }
 
@@ -122,15 +122,45 @@ function parseCss($css, $inScope = false) {
 
 parseCss($css);
 
-// echo json_encode($propAlternatives, JSON_PRETTY_PRINT);
-
-// exit;
+// Filter stuff out
 foreach ($propAlternatives as $prop => $values) {
+    $keys = [];
+    foreach ($values as $defValue => $altValues) {
+
+        $allSame = true;
+        foreach ($altValues as $val) {
+            if ($defValue !== $val) {$allSame = false;}
+        }
+        if (!preg_match('/^[a-z-]+$/', $defValue)) {
+            unset($propAlternatives[$prop][$defValue]);
+        }
+        if ($allSame) {
+            $keys = array_keys($altValues);
+            unset($propAlternatives[$prop][$defValue]);
+        }
+    }
+    if ($keys) {
+        $propAlternatives[$prop] = ['_*' => $keys];
+    } elseif (count($propAlternatives[$prop]) == 0) {
+        // echo "($prop)\n";
+    }
+}
+
+foreach ($propAlternatives as $prop => $values) {
+    if (count($values) == 0) {
+        continue;
+    }
     echo '"' . $prop . '" => [' . "\n";
     foreach ($values as $value => $prefixes) {
         echo '   "' . $value . '" => [';
-        foreach ($prefixes as $key => $value) {
-            echo '"' . $key . '" => "' . $value . '",';
+        if ($value == '_*') {
+            foreach ($prefixes as $prefix) {
+                echo '"' . $prefix . '",';
+            }
+        } else {
+            foreach ($prefixes as $key => $value) {
+                echo '"' . $key . '" => "' . $value . '",';
+            }
         }
         echo '],' . "\n";
     }
