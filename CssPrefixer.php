@@ -24,6 +24,9 @@ class CssPrefixer {
             "block" => ["-webkit-appearance" => "none"],
             "grid" => ["display" => "-ms-grid"],
         ],
+        "background-origin" => [
+            "_*" => ["-moz-background-size", "-o-background-size"],
+        ],
         "background-size" => [
             "_*" => ["-moz-background-size", "-o-background-size"],
         ],
