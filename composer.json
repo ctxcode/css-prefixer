@@ -1,0 +1,19 @@
+{
+    "name": "ctxkiwi/css-prefixer",
+    "description": "Prefix CSS",
+    "type": "library",
+    "authors": [
+        {
+            "name": "LVD",
+            "email": "vdvlorenz@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "CssPrefixer\\": "src"
+        }
+    },
+    "require": {
+        "php": ">=7.0.0"
+    }
+}
