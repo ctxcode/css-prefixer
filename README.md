@@ -1,7 +1,7 @@
 
 # Prefix CSS
 
-Note: This is just a simple library and wont fix most of the things. At the moment it just contains all the prefixes from the MSDN docs and applies does to your CSS. That and adding @keyframes for -webkit-.
+Note: This is just a simple library and wont fix most of the things. At the moment it just contains all the prefixes from the MSDN docs and applies it to your CSS. That and adding @keyframes for -webkit-.
 
 ## Install
 
