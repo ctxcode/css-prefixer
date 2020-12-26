@@ -12,6 +12,6 @@ composer require ctxkiwi/css-prefixer
 ## Usage
 
 ```
-$cssFixer = new \CssPrefixer\Prefixer();
-$css = $cssFixer->prefixCss($css);
+$prefixer = new \CssPrefixer\Prefixer();
+$css = $prefixer->prefixCss($css);
 ```
